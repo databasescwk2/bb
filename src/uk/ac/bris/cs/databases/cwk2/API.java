@@ -40,7 +40,6 @@ public class API implements APIProvider {
             while(r.next()){
                 usermap.put(r.getString("username"), r.getString("name"));
             }
-            s.close();
             return Result.success(usermap);
         } catch (SQLException e) {
             return Result.fatal(e.getMessage());
@@ -64,8 +63,9 @@ public class API implements APIProvider {
             else{
                 return Result.failure("getPersonView: Specified username does not exist");
             }
-            PersonView pv = new PersonView(name, username, studentID);
-            s.close();
+            PersonView pv;
+            if (studentID != null) { pv = new PersonView(name, username, studentID); }
+            else { pv = new PersonView(name, username, ""); }
             return Result.success(pv);
         } catch (SQLException e) {
             return Result.fatal(e.getMessage());
@@ -74,7 +74,25 @@ public class API implements APIProvider {
     
     @Override
     public Result addNewPerson(String name, String username, String studentId) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        String stmt = "INSERT INTO Person (name, username, stuId)" + 
+                            "VALUES (?, ?, ?)";
+        final String nullstmt = "INSERT INTO Person (name, username)" + 
+                            "VALUES (?, ?)";
+        if (name == null || username == null || name.isEmpty() || username.isEmpty()){
+            return Result.failure("addNewPerson: name and username must be filled");
+        }
+        if (studentId == null){ stmt = nullstmt; }
+        try(PreparedStatement s = c.prepareStatement(stmt)){
+            s.setString(1, name);
+            s.setString(2, username);
+            if (studentId != null){ s.setString(3, studentId); }
+            if(s.executeUpdate() == 0){
+                return Result.failure("addNewPerson: username already exists");
+            }
+            return Result.success();
+        } catch (SQLException e) {
+            return Result.fatal(e.getMessage());
+        }
     }
     
     /* A.2 */
