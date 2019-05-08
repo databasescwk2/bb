@@ -15,6 +15,7 @@ import uk.ac.bris.cs.databases.api.PostView;
 import uk.ac.bris.cs.databases.api.Result;
 import uk.ac.bris.cs.databases.api.PersonView;
 import uk.ac.bris.cs.databases.api.SimpleForumSummaryView;
+import uk.ac.bris.cs.databases.api.SimpleTopicSummaryView;
 import uk.ac.bris.cs.databases.api.SimpleTopicView;
 import uk.ac.bris.cs.databases.api.TopicView;
 
@@ -25,9 +26,11 @@ import uk.ac.bris.cs.databases.api.TopicView;
 public class API implements APIProvider {
 
     private final Connection c;
+    private final SummaryViewGetter sg;
     
     public API(Connection c) {
         this.c = c;
+        sg = new SummaryViewGetter(c);
     }
 
     /* A.1 */
@@ -154,7 +157,14 @@ public class API implements APIProvider {
         try(PreparedStatement s = c.prepareStatement(stmt)){
             ResultSet r = s.executeQuery();
             while(r.next()){
-                forumlist.add(new ForumSummaryView(r.getInt("id"), r.getString("title")));
+                Integer id = r.getInt("id");
+                String title = r.getString("title");
+                Result res = sg.lastSimpleTopic(id);
+                if (!res.isSuccess() && res.isFatal()){
+                    return Result.fatal(res.getMessage());
+                }
+                SimpleTopicSummaryView lastPost = (SimpleTopicSummaryView) res.getValue();
+                forumlist.add(new ForumSummaryView(id, title, lastPost));
             }
             return Result.success(forumlist);
         } catch (SQLException e) {
