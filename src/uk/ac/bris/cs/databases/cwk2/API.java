@@ -175,7 +175,7 @@ public class API implements APIProvider {
     
     @Override
     public Result<ForumView> getForum(int id) {
-        final String stmt = "SELECT id, title FROM Forum WHERE title = ?";
+        final String stmt = "SELECT id, title FROM Forum WHERE id = ?";
         try(PreparedStatement s = c.prepareStatement(stmt)){
             ResultSet r = s.executeQuery();
             Integer fId = r.getInt("id");
