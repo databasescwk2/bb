@@ -1,6 +1,7 @@
 package uk.ac.bris.cs.databases.cwk2;
 
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -89,8 +90,15 @@ public class API implements APIProvider {
             if(s.executeUpdate() == 0){
                 return Result.failure("addNewPerson: username already exists");
             }
+            c.commit();
             return Result.success();
         } catch (SQLException e) {
+            try{
+                c.rollback();
+            }
+            catch (SQLException f){
+                return Result.fatal(f.getMessage());
+            }
             return Result.fatal(e.getMessage());
         }
     }
@@ -99,7 +107,17 @@ public class API implements APIProvider {
 
     @Override
     public Result<List<SimpleForumSummaryView>> getSimpleForums() {
-        throw new UnsupportedOperationException("Not supported yet.");
+        final String stmt = "SELECT id, title FROM Forum";
+        List<SimpleForumSummaryView> flist = new ArrayList<>();
+        try(PreparedStatement s = c.prepareStatement(stmt)){
+            ResultSet r = s.executeQuery();
+            while(r.next()){
+                flist.add(new SimpleForumSummaryView(r.getInt("id"), r.getString("title")));
+            }
+            return Result.success(flist);
+        } catch (SQLException e) {
+            return Result.fatal(e.getMessage());
+        }
     }
 
     @Override
