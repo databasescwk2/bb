@@ -1,6 +1,7 @@
 package uk.ac.bris.cs.databases.cwk2;
 
-import java.sql.Connection;
+import java.sql.*;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import uk.ac.bris.cs.databases.api.APIProvider;
@@ -32,7 +33,17 @@ public class API implements APIProvider {
     
     @Override
     public Result<Map<String, String>> getUsers() {
-        throw new UnsupportedOperationException("Not supported yet.");
+        final String stmt = "SELECT username, name FROM Person;";
+        Map<String, String> usermap = new LinkedHashMap<>();
+        try(PreparedStatement s = c.prepareStatement(stmt)){
+            ResultSet r = s.executeQuery();
+            while(r.next()){
+                usermap.put(r.getString("username"), r.getString("name"));
+            }
+            return Result.success(usermap);
+        } catch (SQLException e) {
+            return Result.fatal(e.getMessage());
+        }
     }
 
     @Override
