@@ -179,6 +179,9 @@ public class API implements APIProvider {
         try(PreparedStatement s = c.prepareStatement(stmt)){
             s.setInt(1,id);
             ResultSet r = s.executeQuery();
+            if (r.next() == false){
+                return Result.failure("getForum: No forum exists with the given id");
+            }
             Integer fId = r.getInt("id");
             String title = r.getString("title");
             Result res = sg.topicList(fId);
