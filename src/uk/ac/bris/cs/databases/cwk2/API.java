@@ -122,14 +122,44 @@ public class API implements APIProvider {
 
     @Override
     public Result createForum(String title) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        String stmt = "INSERT INTO Forum (title)" +
+                "VALUES (?)";
+        if (title == null || title.isEmpty()){
+            return Result.failure("createForum: title must be filled");
+        }
+        try(PreparedStatement s = c.prepareStatement(stmt)){
+            s.setString(1, title);
+            if(s.executeUpdate() == 0){
+                return Result.failure("createForum: A forum with this title already exists");
+            }
+            c.commit();
+            return Result.success();
+        } catch (SQLException e) {
+            try{
+                c.rollback();
+            }
+            catch (SQLException f){
+                return Result.fatal(f.getMessage());
+            }
+            return Result.fatal(e.getMessage());
+        }
     }
  
     /* A.3 */
  
     @Override
     public Result<List<ForumSummaryView>> getForums() {
-        throw new UnsupportedOperationException("Not supported yet.");
+        final String stmt = "SELECT id, title FROM Forum ORDER BY title ASC";
+        List<ForumSummaryView> forumlist = new ArrayList<>();
+        try(PreparedStatement s = c.prepareStatement(stmt)){
+            ResultSet r = s.executeQuery();
+            while(r.next()){
+                forumlist.add(new ForumSummaryView(r.getInt("id"), r.getString("title")));
+            }
+            return Result.success(forumlist);
+        } catch (SQLException e) {
+            return Result.fatal(e.getMessage());
+        }
     }   
     
     @Override
