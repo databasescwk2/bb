@@ -62,6 +62,7 @@ public class SummaryViewGetter {
                 "ORDER BY Topic.id DESC";
         SimpleTopicSummaryView Topic;
         List<SimpleTopicSummaryView> tl = new ArrayList<>();
+        System.out.println("testing");
         try(PreparedStatement s = c.prepareStatement(stmt)){
             s.setInt(1, forumId);
             ResultSet r = s.executeQuery();

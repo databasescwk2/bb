@@ -177,6 +177,7 @@ public class API implements APIProvider {
     public Result<ForumView> getForum(int id) {
         final String stmt = "SELECT id, title FROM Forum WHERE id = ?";
         try(PreparedStatement s = c.prepareStatement(stmt)){
+            s.setInt(1,id);
             ResultSet r = s.executeQuery();
             Integer fId = r.getInt("id");
             String title = r.getString("title");
@@ -184,9 +185,8 @@ public class API implements APIProvider {
             if (!res.isSuccess() && res.isFatal()){
                 return Result.fatal(res.getMessage());
             }
-            List<SimpleTopicSummaryView> topics = (List<SimpleTopicSummaryView>)res.getValue();
+            List<SimpleTopicSummaryView> topics = (List<SimpleTopicSummaryView>) res.getValue();
             return Result.success(new ForumView(fId, title,  topics));
-
         } catch (SQLException e) {
             return Result.fatal(e.getMessage());
         }
