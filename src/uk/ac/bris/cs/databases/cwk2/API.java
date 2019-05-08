@@ -40,6 +40,7 @@ public class API implements APIProvider {
             while(r.next()){
                 usermap.put(r.getString("username"), r.getString("name"));
             }
+            s.close();
             return Result.success(usermap);
         } catch (SQLException e) {
             return Result.fatal(e.getMessage());
@@ -48,7 +49,27 @@ public class API implements APIProvider {
 
     @Override
     public Result<PersonView> getPersonView(String username) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        final String stmt = "SELECT name, username, stuId FROM Person WHERE username = ?";
+        String name, studentID;
+        if (username == null || username.isEmpty()){
+            return Result.failure("getPersonView: username may not be empty");
+        }
+        try(PreparedStatement s = c.prepareStatement(stmt)){
+            s.setString(1,username);
+            ResultSet r = s.executeQuery();
+            if (r.next()){
+                name = r.getString("name");
+                studentID = r.getString("stuId");
+            }
+            else{
+                return Result.failure("getPersonView: Specified username does not exist");
+            }
+            PersonView pv = new PersonView(name, username, studentID);
+            s.close();
+            return Result.success(pv);
+        } catch (SQLException e) {
+            return Result.fatal(e.getMessage());
+        }
     }
     
     @Override
