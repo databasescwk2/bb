@@ -70,7 +70,7 @@ public class SummaryViewGetter {
                 tl.add(Topic);
             }
 
-            return Result.success(Topic);
+            return Result.success(tl);
         } catch (SQLException e) {
             return Result.fatal(e.getMessage());
         }
