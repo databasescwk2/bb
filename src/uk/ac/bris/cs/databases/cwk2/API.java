@@ -175,21 +175,18 @@ public class API implements APIProvider {
     @Override
     public Result<ForumView> getForum(int id) {
         final String stmt = "SELECT id, title FROM Forum WHERE title = ?";
-        List<ForumView> fview = new ArrayList<>();
 
         try(PreparedStatement s = c.prepareStatement(stmt)){
             ResultSet r = s.executeQuery();
-            while(r.next()){
-                Integer id = r.getInt("id");
-                String title = r.getString("title");
-                Result res = sg.lastSimpleTopic(id);
-                if (!res.isSuccess() && res.isFatal()){
-                    return Result.fatal(res.getMessage());
-                }
-                SimpleTopicSummaryView lastPost = (SimpleTopicSummaryView) res.getValue();
-                forumlist.add(new ForumSummaryView(id, title, lastPost));
+            Integer fId = r.getInt("id");
+            String title = r.getString("title");
+            Result res = sg.topicList(fId);
+            if (!res.isSuccess() && res.isFatal()){
+                return Result.fatal(res.getMessage());
             }
-            return Result.success(forumlist);
+            List<SimpleTopicSummaryView> topics = (List<SimpleTopicSummaryView>)res.getValue();
+            return Result.success(new ForumView(fId, title,  topics));
+
         } catch (SQLException e) {
             return Result.fatal(e.getMessage());
         }
