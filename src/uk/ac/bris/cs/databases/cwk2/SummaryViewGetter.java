@@ -83,7 +83,11 @@ public class SummaryViewGetter {
             s.setInt(1, topicId);
             ResultSet r = s.executeQuery();
             while(r.next()){
-                
+                Integer postNo = r.getInt("postNumber");
+                String author = r.getString("author");
+                String text = r.getString("text");
+                String postedAt = r.getDate("postedAt").toString();
+                pl.add(new SimplePostView(postNo, author, text, postedAt));
             }
             return Result.success(pl);
         } catch (SQLException e) {
