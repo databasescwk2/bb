@@ -53,4 +53,28 @@ public class SummaryViewGetter {
             return Result.fatal(e.getMessage());
         }
     }
+
+    Result<List<SimpleTopicSummaryView>> topicList(int forumId){
+        final String stmt = "SELECT Topic.id as topicId, Forum.id as forumId, Topic.title " +
+                "FROM Topic INNER JOIN Forum ON forumId=Forum.id " +
+                "WHERE forumId = ? " +
+                "ORDER BY Topic.id DESC";
+
+        SimpleTopicSummaryView Topic;
+        List<SimpleTopicSummaryView> tl = new ArrayList<>();
+
+        try(PreparedStatement s = c.prepareStatement(stmt)){
+            s.setInt(1, forumId);
+            ResultSet r = s.executeQuery();
+            while(r.next()){
+                Topic = new SimpleTopicSummaryView(r.getInt("topicId"),forumId, r.getString("title"));
+                tl.add(Topic);
+            }
+
+            return Result.success(Topic);
+        } catch (SQLException e) {
+            return Result.fatal(e.getMessage());
+        }
+
+    }
 }

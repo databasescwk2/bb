@@ -175,8 +175,26 @@ public class API implements APIProvider {
     
     @Override
     public Result<ForumView> getForum(int id) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }   
+        final String stmt = "SELECT id, title FROM Forum WHERE title = ?";
+        List<ForumView> fview = new ArrayList<>();
+
+        try(PreparedStatement s = c.prepareStatement(stmt)){
+            ResultSet r = s.executeQuery();
+            while(r.next()){
+                Integer id = r.getInt("id");
+                String title = r.getString("title");
+                Result res = sg.lastSimpleTopic(id);
+                if (!res.isSuccess() && res.isFatal()){
+                    return Result.fatal(res.getMessage());
+                }
+                SimpleTopicSummaryView lastPost = (SimpleTopicSummaryView) res.getValue();
+                forumlist.add(new ForumSummaryView(id, title, lastPost));
+            }
+            return Result.success(forumlist);
+        } catch (SQLException e) {
+            return Result.fatal(e.getMessage());
+        }
+    }
 
     @Override
     public Result<SimpleTopicView> getSimpleTopic(int topicId) {
