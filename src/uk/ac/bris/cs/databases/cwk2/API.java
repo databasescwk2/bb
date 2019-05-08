@@ -177,7 +177,6 @@ public class API implements APIProvider {
     public Result<ForumView> getForum(int id) {
         final String stmt = "SELECT id, title FROM Forum WHERE title = ?";
         List<ForumView> fview = new ArrayList<>();
-
         try(PreparedStatement s = c.prepareStatement(stmt)){
             ResultSet r = s.executeQuery();
             while(r.next()){

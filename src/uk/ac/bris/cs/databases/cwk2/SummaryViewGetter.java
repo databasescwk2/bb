@@ -20,6 +20,7 @@ import uk.ac.bris.cs.databases.api.PostView;
 import uk.ac.bris.cs.databases.api.Result;
 import uk.ac.bris.cs.databases.api.PersonView;
 import uk.ac.bris.cs.databases.api.SimpleForumSummaryView;
+import uk.ac.bris.cs.databases.api.SimplePostView;
 import uk.ac.bris.cs.databases.api.SimpleTopicSummaryView;
 import uk.ac.bris.cs.databases.api.SimpleTopicView;
 import uk.ac.bris.cs.databases.api.TopicView;
@@ -59,10 +60,8 @@ public class SummaryViewGetter {
                 "FROM Topic INNER JOIN Forum ON forumId=Forum.id " +
                 "WHERE forumId = ? " +
                 "ORDER BY Topic.id DESC";
-
         SimpleTopicSummaryView Topic;
         List<SimpleTopicSummaryView> tl = new ArrayList<>();
-
         try(PreparedStatement s = c.prepareStatement(stmt)){
             s.setInt(1, forumId);
             ResultSet r = s.executeQuery();
@@ -75,6 +74,20 @@ public class SummaryViewGetter {
         } catch (SQLException e) {
             return Result.fatal(e.getMessage());
         }
-
+    }
+    
+    Result<List<SimplePostView>> postList(int topicId){
+        final String stmt = "SELECT * FROM Post WHERE topicId = ?";
+        List<SimplePostView> pl = new ArrayList<>();
+        try(PreparedStatement s = c.prepareStatement(stmt)){
+            s.setInt(1, topicId);
+            ResultSet r = s.executeQuery();
+            while(r.next()){
+                
+            }
+            return Result.success(pl);
+        } catch (SQLException e) {
+            return Result.fatal(e.getMessage());
+        }
     }
 }
