@@ -15,6 +15,7 @@ import uk.ac.bris.cs.databases.api.PostView;
 import uk.ac.bris.cs.databases.api.Result;
 import uk.ac.bris.cs.databases.api.PersonView;
 import uk.ac.bris.cs.databases.api.SimpleForumSummaryView;
+import uk.ac.bris.cs.databases.api.SimplePostView;
 import uk.ac.bris.cs.databases.api.SimpleTopicSummaryView;
 import uk.ac.bris.cs.databases.api.SimpleTopicView;
 import uk.ac.bris.cs.databases.api.TopicView;
@@ -179,7 +180,23 @@ public class API implements APIProvider {
 
     @Override
     public Result<SimpleTopicView> getSimpleTopic(int topicId) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        final String stmt = "SELECT topicId, Topic.title as tTitle FROM Topic " +
+                            "WHERE topicId = ?";
+        SimpleTopicView st;
+        try(PreparedStatement s = c.prepareStatement(stmt)){
+            s.setInt(1, topicId);
+            ResultSet r = s.executeQuery();
+            if (r.next() == false){
+                return Result.failure("getSimpleTopic: No topic with this topic ID");
+            }
+            Result res = sg.postList(topicId);
+            if (!res.isSuccess() && res.isFatal()){return Result.fatal(res.getMessage());}
+            List<SimplePostView> pl = (List<SimplePostView>) res.getValue();
+            st = new SimpleTopicView(topicId, r.getString("title"), pl);
+            return Result.success(st);
+        } catch (SQLException e) {
+            return Result.fatal(e.getMessage());
+        }
     }    
     
     @Override
