@@ -287,7 +287,13 @@ public class API implements APIProvider {
     
     @Override
     public Result<Integer> countPostsInTopic(int topicId) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        final String stmt = "";
+        try(PreparedStatement s = c.prepareStatement(stmt)){
+            ResultSet r = s.executeQuery();
+            return Result.success(1);
+        } catch (SQLException e) {
+            return Result.fatal(e.getMessage());
+        }
     }
 
     /* B.1 */

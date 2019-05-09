@@ -7,23 +7,10 @@ package uk.ac.bris.cs.databases.cwk2;
 
 import java.sql.*;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
-import uk.ac.bris.cs.databases.api.APIProvider;
-import uk.ac.bris.cs.databases.api.AdvancedForumSummaryView;
-import uk.ac.bris.cs.databases.api.AdvancedForumView;
-import uk.ac.bris.cs.databases.api.ForumSummaryView;
-import uk.ac.bris.cs.databases.api.ForumView;
-import uk.ac.bris.cs.databases.api.AdvancedPersonView;
-import uk.ac.bris.cs.databases.api.PostView;
 import uk.ac.bris.cs.databases.api.Result;
-import uk.ac.bris.cs.databases.api.PersonView;
-import uk.ac.bris.cs.databases.api.SimpleForumSummaryView;
 import uk.ac.bris.cs.databases.api.SimplePostView;
 import uk.ac.bris.cs.databases.api.SimpleTopicSummaryView;
-import uk.ac.bris.cs.databases.api.SimpleTopicView;
-import uk.ac.bris.cs.databases.api.TopicView;
 
 /**
  *
@@ -86,12 +73,12 @@ public class ViewGetter {
             while(r.next()){
                 Integer postNo = r.getInt("postNumber");
                 Integer authorId = r.getInt("authorId");
-                Result<String> resName = getUsername(authorId);
-                if (!resName.isSuccess() && resName.isFatal()){ return Result.fatal(resName.getMessage()); }
-                if (!resName.isSuccess() && resName.isFatal()){ return Result.failure(resName.getMessage()); }
+                Result resName = getUsername(authorId);
+                if (!resName.isSuccess()) {return resName;}
                 String text = r.getString("text");
                 String postedAt = r.getDate("postedAt").toString();
-                pl.add(new SimplePostView(postNo, resName.getValue(), text, postedAt));
+                pl.add(new SimplePostView(postNo, (String) resName.getValue(),
+                                            text, postedAt));
             }
             return Result.success(pl);
         } catch (SQLException e) {
