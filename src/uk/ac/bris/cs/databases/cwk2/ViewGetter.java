@@ -85,10 +85,13 @@ public class ViewGetter {
             ResultSet r = s.executeQuery();
             while(r.next()){
                 Integer postNo = r.getInt("postNumber");
-                String author = r.getString("author");
+                Integer authorId = r.getInt("authorId");
+                Result<String> resName = getUsername(authorId);
+                if (!resName.isSuccess() && resName.isFatal()){ return Result.fatal(resName.getMessage()); }
+                if (!resName.isSuccess() && resName.isFatal()){ return Result.failure(resName.getMessage()); }
                 String text = r.getString("text");
                 String postedAt = r.getDate("postedAt").toString();
-                pl.add(new SimplePostView(postNo, author, text, postedAt));
+                pl.add(new SimplePostView(postNo, resName.getValue(), text, postedAt));
             }
             return Result.success(pl);
         } catch (SQLException e) {
@@ -110,14 +113,28 @@ public class ViewGetter {
         }
     }
     
+    Result<String> getUsername(int id){
+        final String stmt = "SELECT * FROM Person WHERE id = ?";
+        try(PreparedStatement s = c.prepareStatement(stmt)){
+            s.setInt(1, id);
+            ResultSet r = s.executeQuery();
+            if (r.next() == false){
+                return Result.failure("getUsername: person does not exist");
+            }
+            return Result.success(r.getString("username"));
+        } catch (SQLException e) {
+            return Result.fatal(e.getMessage());
+        }
+    }
+    
     Result<Integer> countPosts(int topicId){
-        final String stmt = "SELECT COUNT(1) as cnt FROM Post WHERE topicId = ?" + 
+        final String stmt = "SELECT COUNT(1) as cnt FROM Post WHERE topicId = ? " + 
                              "GROUP BY topicId";
         try(PreparedStatement s = c.prepareStatement(stmt)){
             s.setInt(1, topicId);
             ResultSet r = s.executeQuery();
             if (r.next() == false){
-                return Result.failure("countPosts: No posts in topic?");
+                return Result.success(0);
             }
             return Result.success(r.getInt("cnt"));
         } catch (SQLException e) {
@@ -131,7 +148,7 @@ public class ViewGetter {
             s.setString(1, username);
             ResultSet r = s.executeQuery();
             if (r.next() == false) { Result.failure("getPersonId: Person does not exist"); }
-            return Result.success();
+            return Result.success(r.getInt("id"));
         } catch (SQLException e) {
             return Result.fatal(e.getMessage());
         }

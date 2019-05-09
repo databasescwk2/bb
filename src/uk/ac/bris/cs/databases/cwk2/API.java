@@ -193,8 +193,8 @@ public class API implements APIProvider {
 
     @Override
     public Result<SimpleTopicView> getSimpleTopic(int topicId) {
-        final String stmt = "SELECT topicId, Topic.title as tTitle FROM Topic " +
-                            "WHERE topicId = ?";
+        final String stmt = "SELECT id, Topic.title as title FROM Topic " +
+                            "WHERE id = ?";
         SimpleTopicView st;
         try(PreparedStatement s = c.prepareStatement(stmt)){
             s.setInt(1, topicId);
