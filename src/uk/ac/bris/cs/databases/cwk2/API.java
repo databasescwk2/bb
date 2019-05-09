@@ -270,7 +270,7 @@ public class API implements APIProvider {
      
     @Override
     public Result createTopic(int forumId, String username, String title, String text) {
-        final String stmt = "INSERT INTO Topic (forumId, title" +
+        final String stmt = "INSERT INTO Topic (forumId, title) " +
                 "VALUES(?,?)";
         
         try(PreparedStatement s = c.prepareStatement(stmt)){
@@ -280,10 +280,10 @@ public class API implements APIProvider {
                 return Result.failure("createTopic: database did not update");
             }
             ResultSet k =  s.getGeneratedKeys();
+            int key = -1;
             if (k != null && k.next()) {
-                int key = k.getInt(1);
+                key = k.getInt(1);
             }
-
             Result newpost = createPost(key, username, text);
             if(!newpost.isSuccess()){
                 return newpost;
