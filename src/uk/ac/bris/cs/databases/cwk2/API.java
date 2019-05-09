@@ -270,7 +270,19 @@ public class API implements APIProvider {
      
     @Override
     public Result createTopic(int forumId, String username, String title, String text) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        final String stmt = "";
+        
+        try(PreparedStatement s = c.prepareStatement(stmt)){
+            return Result.success();
+        } catch (SQLException e) {
+            try{
+                c.rollback();
+            }
+            catch (SQLException f){
+                return Result.fatal(f.getMessage());
+            }
+            return Result.fatal(e.getMessage());
+        }
     }
     
     @Override
