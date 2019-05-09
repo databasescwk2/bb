@@ -241,13 +241,14 @@ public class API implements APIProvider {
         if (text == null || text.isEmpty()){
             return Result.failure("createPost: text must be filled");
         }
-        Result<Integer> numP = sg.countPosts(topicId);
+        Result<Integer> numP = countPostsInTopic(topicId);
         if (!numP.isSuccess()) { return numP; }
+        Integer numPosts = numP.getValue() + 1;
         Result<Integer> idRes = sg.getPersonId(username);
         if (!idRes.isSuccess()) { return idRes; }
         try(PreparedStatement s = c.prepareStatement(stmt)){
             s.setInt(1, topicId);
-            s.setInt(2, numP.getValue() + 1);
+            s.setInt(2, numPosts);
             s.setInt(3, idRes.getValue());
             s.setString(4, text);
             s.setDate(5, sg.getDateTime());
@@ -255,6 +256,7 @@ public class API implements APIProvider {
             if (s.executeUpdate() != 1){
                 return Result.failure("createPost: database did not update");
             }
+            sg.incrementPostCount(topicId);
             c.commit();
             return Result.success();
         } catch (SQLException e) {
@@ -270,12 +272,13 @@ public class API implements APIProvider {
      
     @Override
     public Result createTopic(int forumId, String username, String title, String text) {
-        final String stmt = "INSERT INTO Topic (forumId, title) " +
-                "VALUES(?,?)";
+        final String stmt = "INSERT INTO Topic (forumId, title, postCount) " +
+                "VALUES(?,?,?)";
         
         try(PreparedStatement s = c.prepareStatement(stmt)){
             s.setInt(1, forumId);
             s.setString(2, title);
+            s.setInt(3, 0);
             if(s.executeUpdate() != 1){
                 return Result.failure("createTopic: database did not update");
             }
@@ -303,10 +306,14 @@ public class API implements APIProvider {
     
     @Override
     public Result<Integer> countPostsInTopic(int topicId) {
-        final String stmt = "";
+        final String stmt = "SELECT postCount FROM Topic WHERE id = ?";
         try(PreparedStatement s = c.prepareStatement(stmt)){
+            s.setInt(1, topicId);
             ResultSet r = s.executeQuery();
-            return Result.success(1);
+            if (r.next() == false){
+                Result.failure("countPostsInTopic: post does not exist");
+            }
+            return Result.success(r.getInt("postCount"));
         } catch (SQLException e) {
             return Result.fatal(e.getMessage());
         }

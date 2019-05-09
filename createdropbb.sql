@@ -1,3 +1,5 @@
+DROP TABLE IF EXISTS PostLikes;
+DROP TABLE IF EXISTS TopicLikes;
 DROP TABLE IF EXISTS Post;
 DROP TABLE IF EXISTS Topic;
 DROP TABLE IF EXISTS Forum;
@@ -20,6 +22,7 @@ CREATE TABLE Topic (
 	forumId INTEGER NOT NULL,
 	title VARCHAR(100) NOT NULL,
 	postCount INTEGER NOT NULL,
+	likes INTEGER NOT NULL,
 	FOREIGN KEY (forumId) REFERENCES Forum(id)
 );
 
@@ -38,8 +41,15 @@ CREATE TABLE Post (
 CREATE TABLE TopicLikes(
     topicId INTEGER UNIQUE NOT NULL,
 	authorId INTEGER UNIQUE NOT NULL,
-	FOREIGN KEY (topicId) REFERENCED Topic(id),
-	FOREIGN KEY (authorId) REFERENCES Person(id)
+	FOREIGN KEY (topicId) REFERENCES Topic(id),
+	FOREIGN KEY (authorId) REFERENCES Person(id),
+	PRIMARY KEY (topicId, authorId)
 );
 
-CREATE TABLE PostLikes();
+CREATE TABLE PostLikes(
+    postId INTEGER UNIQUE NOT NULL,
+	authorId INTEGER UNIQUE NOT NULL,
+	FOREIGN KEY (postId) REFERENCES Post(id),
+	FOREIGN KEY (authorId) REFERENCES Person(id),
+	PRIMARY KEY (postId, authorId)
+);

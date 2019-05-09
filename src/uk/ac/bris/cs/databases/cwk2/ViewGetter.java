@@ -114,17 +114,26 @@ public class ViewGetter {
         }
     }
     
-    Result<Integer> countPosts(int topicId){
-        final String stmt = "SELECT COUNT(1) as cnt FROM Post WHERE topicId = ? " + 
-                             "GROUP BY topicId";
+    Result incrementPostCount(int topicId){
+        final String stmt = "UPDATE Topic " +
+                            "SET numPosts = numPosts + 1 " +
+                            "WHERE id = ?";
         try(PreparedStatement s = c.prepareStatement(stmt)){
             s.setInt(1, topicId);
-            ResultSet r = s.executeQuery();
-            if (r.next() == false){
-                return Result.success(0);
+            if(s.executeUpdate() != 1){
+                try{ c.rollback(); }
+                catch (SQLException f){ return Result.fatal(f.getMessage()); }
+                return Result.failure("incrementPostCount: unexpected number of rows updated");
             }
-            return Result.success(r.getInt("cnt"));
+            c.commit();
+            return Result.success();
         } catch (SQLException e) {
+            try{
+                c.rollback();
+            }
+            catch (SQLException f){
+                return Result.fatal(f.getMessage());
+            }
             return Result.fatal(e.getMessage());
         }
     }
