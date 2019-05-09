@@ -270,9 +270,25 @@ public class API implements APIProvider {
      
     @Override
     public Result createTopic(int forumId, String username, String title, String text) {
-        final String stmt = "";
+        final String stmt = "INSERT INTO Topic (forumId, title" +
+                "VALUES(?,?)";
         
         try(PreparedStatement s = c.prepareStatement(stmt)){
+            s.setInt(1, forumId);
+            s.setString(2, title);
+            if(s.executeUpdate() != 1){
+                return Result.failure("createTopic: database did not update");
+            }
+            ResultSet k =  s.getGeneratedKeys();
+            if (k != null && k.next()) {
+                int key = k.getInt(1);
+            }
+
+            Result newpost = createPost(key, username, text);
+            if(!newpost.isSuccess()){
+                return newpost;
+            }
+            c.commit();
             return Result.success();
         } catch (SQLException e) {
             try{
