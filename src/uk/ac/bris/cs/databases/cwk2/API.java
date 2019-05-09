@@ -27,11 +27,11 @@ import uk.ac.bris.cs.databases.api.TopicView;
 public class API implements APIProvider {
 
     private final Connection c;
-    private final SummaryViewGetter sg;
+    private final ViewGetter sg;
     
     public API(Connection c) {
         this.c = c;
-        sg = new SummaryViewGetter(c);
+        sg = new ViewGetter(c);
     }
 
     /* A.1 */
@@ -161,9 +161,7 @@ public class API implements APIProvider {
                 Integer id = r.getInt("id");
                 String title = r.getString("title");
                 Result res = sg.lastSimpleTopic(id);
-                if (!res.isSuccess() && res.isFatal()){
-                    return Result.fatal(res.getMessage());
-                }
+                if (!res.isSuccess()){ return res; }
                 SimpleTopicSummaryView lastPost = (SimpleTopicSummaryView) res.getValue();
                 forumlist.add(new ForumSummaryView(id, title, lastPost));
             }
@@ -185,9 +183,7 @@ public class API implements APIProvider {
             Integer fId = r.getInt("id");
             String title = r.getString("title");
             Result res = sg.topicList(fId);
-            if (!res.isSuccess() && res.isFatal()){
-                return Result.fatal(res.getMessage());
-            }
+            if (!res.isSuccess()){ return res; }
             List<SimpleTopicSummaryView> topics = (List<SimpleTopicSummaryView>) res.getValue();
             return Result.success(new ForumView(fId, title,  topics));
         } catch (SQLException e) {
@@ -218,12 +214,58 @@ public class API implements APIProvider {
     
     @Override
     public Result<PostView> getLatestPost(int topicId) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        final String stmt = "SELECT * FROM Post INNER JOIN Person ON Person.id = authorId" +
+                            "WHERE topicId = ? " +
+                            "ORDER BY id DESC LIMIT 1";
+        PostView lastPost;
+        try(PreparedStatement s = c.prepareStatement(stmt)){
+            s.setInt(1, topicId);
+            ResultSet r = s.executeQuery();
+            if(r.next() == false){
+                return Result.failure("getLatestPost: No post exists");
+            }
+            lastPost = new PostView(r.getInt("forumId"), topicId, r.getInt("postNumber"),
+                                    r.getString("Person.name"), r.getString("Person.username"),
+                                    r.getString("text"), r.getDate("postedAt").toString(),
+                                    r.getInt("likes"));
+            return Result.success(lastPost);
+        } catch (SQLException e) {
+            return Result.fatal(e.getMessage());
+        }
     }
 
     @Override
     public Result createPost(int topicId, String username, String text) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        String stmt = "INSERT INTO Post (topicId, postNumber, authorId," +
+                        "text, postedAt, likes) VALUES(?,?,?,?,?,?)";
+        if (text == null || text.isEmpty()){
+            return Result.failure("createPost: text must be filled");
+        }
+        Result<Integer> numP = sg.countPosts(topicId);
+        if (!numP.isSuccess()) { return numP; }
+        Result<Integer> idRes = sg.getPersonId(username);
+        if (!idRes.isSuccess()) { return idRes; }
+        try(PreparedStatement s = c.prepareStatement(stmt)){
+            s.setInt(1, topicId);
+            s.setInt(2, numP.getValue() + 1);
+            s.setInt(3, idRes.getValue());
+            s.setString(4, text);
+            s.setDate(5, System.out.);
+            s.setInt(6, 0);
+            if (s.executeUpdate() != 1){
+                return Result.failure("createPost: database did not update");
+            }
+            c.commit();
+            return Result.success();
+        } catch (SQLException e) {
+            try{
+                c.rollback();
+            }
+            catch (SQLException f){
+                return Result.fatal(f.getMessage());
+            }
+            return Result.fatal(e.getMessage());
+        }
     }
      
     @Override

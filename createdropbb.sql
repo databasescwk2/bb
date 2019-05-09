@@ -25,10 +25,11 @@ CREATE TABLE Topic (
 CREATE TABLE Post (
 	id INTEGER PRIMARY KEY AUTO_INCREMENT,
 	topicId INTEGER NOT NULL,
-  postNumber INTEGER NOT NULL,
-  authorUserName INTEGER NOT NULL,
+    postNumber INTEGER NOT NULL,
+    authorId INTEGER NOT NULL,
 	text VARCHAR(1000) NOT NULL,
-  postedAt DATETIME NOT NULL,
+    postedAt DATETIME NOT NULL,
+	likes INTEGER NULL,
 	FOREIGN KEY (topicId) REFERENCES Topic(id),
-  FOREIGN KEY (authorUserName) REFERENCES Person(id)
+    FOREIGN KEY (authorUserName) REFERENCES Person(id)
 );

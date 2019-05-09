@@ -29,10 +29,10 @@ import uk.ac.bris.cs.databases.api.TopicView;
  *
  * @author heman
  */
-public class SummaryViewGetter {
+public class ViewGetter {
     private final Connection c;
     
-    public SummaryViewGetter(Connection c) {
+    public ViewGetter(Connection c) {
         this.c = c;
     }
     
@@ -94,5 +94,38 @@ public class SummaryViewGetter {
         } catch (SQLException e) {
             return Result.fatal(e.getMessage());
         }
+    }
+    
+    Result<Integer> getUserId(String username){
+        final String stmt = "SELECT * FROM Person WHERE username = ?";
+        try(PreparedStatement s = c.prepareStatement(stmt)){
+            s.setString(1, username);
+            ResultSet r = s.executeQuery();
+            if (r.next() == false){
+                return Result.failure("getUserId: person does not exist");
+            }
+            return Result.success(r.getInt("id"));
+        } catch (SQLException e) {
+            return Result.fatal(e.getMessage());
+        }
+    }
+    
+    Result<Integer> countPosts(int topicId){
+        final String stmt = "SELECT COUNT(1) as cnt FROM Post WHERE topicId = ?" + 
+                             "GROUP BY topicId";
+        try(PreparedStatement s = c.prepareStatement(stmt)){
+            s.setInt(1, topicId);
+            ResultSet r = s.executeQuery();
+            if (r.next() == false){
+                return Result.failure("countPosts: No posts in topic?");
+            }
+            return Result.success(r.getInt("cnt"));
+        } catch (SQLException e) {
+            return Result.fatal(e.getMessage());
+        }
+    }
+
+    Result<Integer> getPersonId(String username) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }
