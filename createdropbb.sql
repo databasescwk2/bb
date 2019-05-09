@@ -19,7 +19,7 @@ CREATE TABLE Topic (
 	id INTEGER PRIMARY KEY AUTO_INCREMENT,
 	forumId INTEGER NOT NULL,
 	title VARCHAR(100) NOT NULL,
-	numPosts INTEGER NOT NULL,
+	postCount INTEGER NOT NULL,
 	FOREIGN KEY (forumId) REFERENCES Forum(id)
 );
 
@@ -34,3 +34,12 @@ CREATE TABLE Post (
 	FOREIGN KEY (topicId) REFERENCES Topic(id),
     FOREIGN KEY (authorId) REFERENCES Person(id)
 );
+
+CREATE TABLE TopicLikes(
+    topicId INTEGER UNIQUE NOT NULL,
+	authorId INTEGER UNIQUE NOT NULL,
+	FOREIGN KEY (topicId) REFERENCED Topic(id),
+	FOREIGN KEY (authorId) REFERENCES Person(id)
+);
+
+CREATE TABLE PostLikes();
