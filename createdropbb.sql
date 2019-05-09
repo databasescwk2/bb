@@ -31,5 +31,5 @@ CREATE TABLE Post (
     postedAt DATETIME NOT NULL,
 	likes INTEGER NULL,
 	FOREIGN KEY (topicId) REFERENCES Topic(id),
-    FOREIGN KEY (authorUserName) REFERENCES Person(id)
+    FOREIGN KEY (authorId) REFERENCES Person(id)
 );

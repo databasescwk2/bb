@@ -126,6 +126,19 @@ public class ViewGetter {
     }
 
     Result<Integer> getPersonId(String username) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        final String stmt = "SELECT * FROM Person WHERE username = ?";
+        try(PreparedStatement s = c.prepareStatement(stmt)){
+            s.setString(1, username);
+            ResultSet r = s.executeQuery();
+            if (r.next() == false) { Result.failure("getPersonId: Person does not exist"); }
+            return Result.success();
+        } catch (SQLException e) {
+            return Result.fatal(e.getMessage());
+        }
+    }
+    
+    java.sql.Date getDateTime(){
+        java.util.Date today = new java.util.Date();
+        return new java.sql.Date(today.getTime());
     }
 }

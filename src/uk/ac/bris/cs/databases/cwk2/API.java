@@ -250,7 +250,7 @@ public class API implements APIProvider {
             s.setInt(2, numP.getValue() + 1);
             s.setInt(3, idRes.getValue());
             s.setString(4, text);
-            s.setDate(5, System.out.);
+            s.setDate(5, sg.getDateTime());
             s.setInt(6, 0);
             if (s.executeUpdate() != 1){
                 return Result.failure("createPost: database did not update");
